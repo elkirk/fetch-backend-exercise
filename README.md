@@ -23,22 +23,3 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
-A truncated description of the exercise is as follows:
-
-Create a simple webservice that accepts HTTP requests and returns responses based on conditions outlined below.
-
-The repo has the following folder structure:
-
-
-```console
-fetch-backend-exercise/
-├── __init__.py
-├── database.py
-├── main.py
-├── models.py
-├── README.md
-├── requirements.txt
-├── schemas.py
-```
-
-`database.py` contains code that defines the sqlite database used to store
