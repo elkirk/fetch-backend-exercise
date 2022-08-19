@@ -19,7 +19,7 @@ def check_if_enough_points(db: Session, amount: int):
         total_points = db.query(func.sum(models.Transaction.points)).first()[0]
         return amount > total_points
     else:
-        return false
+        return False
 
 def get_db():
     db = SessionLocal()
