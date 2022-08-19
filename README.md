@@ -23,3 +23,17 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
+
+#### Option 2: Run with Docker
+Coming soon...
+
+### Interacting with the app
+There are 4 endpoints that accept requests:
+- `add-transaction` accepts POST requests representing points transactions that have the format:
+    ```
+    { "payer": "DANNON", "points": 1000, "timestamp": "2020-11-02T14:00:00Z" }
+    { "payer": "UNILEVER", "points": 200, "timestamp": "2020-10-31T11:00:00Z" }
+    { "payer": "DANNON", "points": -200, "timestamp": "2020-10-31T15:00:00Z" }
+    { "payer": "MILLER COORS", "points": 10000, "timestamp": "2020-11-01T14:00:00Z" }
+    { "payer": "DANNON", "points": 300, "timestamp": "2020-10-31T10:00:00Z" }
+    ```
