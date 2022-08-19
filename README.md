@@ -29,7 +29,7 @@ Coming soon...
 
 ### Interacting with the app
 There are 4 endpoints that accept requests:
-- `add-transaction` accepts POST requests representing points transactions that have the format:
+- `add-transaction` accepts POST requests representing points transactions that have the format described below and created a database entry for each:
     ```
     { "payer": "DANNON", "points": 1000, "timestamp": "2020-11-02T14:00:00Z" }
     { "payer": "UNILEVER", "points": 200, "timestamp": "2020-10-31T11:00:00Z" }
@@ -37,3 +37,27 @@ There are 4 endpoints that accept requests:
     { "payer": "MILLER COORS", "points": 10000, "timestamp": "2020-11-01T14:00:00Z" }
     { "payer": "DANNON", "points": 300, "timestamp": "2020-10-31T10:00:00Z" }
     ```
+- `balance` accepts GET requests and returns total point balances for each payer with at least one transaction in the database.
+- `spend` accepts PUT requests representing a points spend request that have the format described below. If there are enough points in the database to cover the spend, this endpoint returns JSON describing the payers and their contributions to the spend request. Points are spent oldest-to-newest. If there are not enough points to cover the request, a response will be returned with status code 422 indicating there are insufficient points.
+    - Requests have the format:
+    ```
+    { "points": 5000 }
+    ```
+    - Since points are spent oldest-to-newest, the spend request described above will return the following:
+    ```
+    [
+    {
+        "payer": "DANNON",
+        "points": -100
+    },
+    {
+        "payer": "UNILEVER",
+        "points": -200
+    },
+    {
+        "payer": "MILLER COORS",
+        "points": -4700
+    }
+    ]
+    ```
+    New records will be added to the database reflecting these negative transactions.
