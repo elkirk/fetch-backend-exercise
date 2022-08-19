@@ -15,8 +15,11 @@ def check_duplicate_transaction(db: Session, payer: str, timestamp: datetime):
     return db.query(models.Transaction).filter(models.Transaction.payer == payer, 
                                                models.Transaction.timestamp == timestamp).first()
 def check_if_enough_points(db: Session, amount: int):
-    total_points = db.query(func.sum(models.Transaction.points)).first()[0]
-    return amount > total_points
+    if db.query(func.sum(models.Transaction.points)).first()[0]:
+        total_points = db.query(func.sum(models.Transaction.points)).first()[0]
+        return amount > total_points
+    else:
+        return false
 
 def get_db():
     db = SessionLocal()
