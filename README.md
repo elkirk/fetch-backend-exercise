@@ -37,11 +37,14 @@ There are 4 endpoints that accept requests:
     { "payer": "MILLER COORS", "points": 10000, "timestamp": "2020-11-01T14:00:00Z" }
     { "payer": "DANNON", "points": 300, "timestamp": "2020-10-31T10:00:00Z" }
     ```
-    - You can use Postman to make requests, or, from the command line:
+    - You can use Postman to make requests, or, from the command line (make sure the app is running first):
     ```console
     curl -d "{ "payer": "DANNON", "points": 1000, "timestamp": "2020-11-02T14:00:00Z" }" -X POST 127.0.0.1/add-transaction
     ```
-- `balance` accepts GET requests and returns total point balances for each payer with at least one transaction in the database.
+- `balance` accepts GET requests and returns total point balances for each payer with at least one transaction in the database. Use Postman, or the following command:
+    ```console
+    curl 127.0.0.1/balance
+    ```
 - `spend` accepts PUT requests representing a points spend request that have the format described below. If there are enough points in the database to cover the spend, this endpoint returns JSON describing the payers and their contributions to the spend request. Points are spent oldest-to-newest. If there are not enough points to cover the request, a response will be returned with status code 422 indicating there are insufficient points.
     - Requests have the format:
     ```
@@ -65,6 +68,10 @@ There are 4 endpoints that accept requests:
     ]
     ```
     - New records will be added to the database reflecting these negative transactions.
+    - Make a request with Postman or the following command:
+    ```console
+    curl -d { "points": 5000 } -X PUT 127.0.0.1/spend
+    ```
 - `check` accepts GET requests and returns a list of JSON entries representing every transaction currently stored in the database. Hitting this endpoint after the requests described above will return:
     ```
     [
@@ -117,4 +124,8 @@ There are 4 endpoints that accept requests:
         "points": -4700
     }
     ]
+    ```
+    - Make a request with Postman or the following command:
+    ```console
+    curl 127.0.0.1/check
     ```
