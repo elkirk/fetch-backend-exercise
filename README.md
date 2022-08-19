@@ -39,8 +39,7 @@ There are 4 endpoints that accept requests:
     ```
     - You can use Postman to make requests, or, from the command line:
     ```console
-    curl -d "{ "payer": "DANNON", "points": 1000, "timestamp": "2020-11-02T14:00:00Z" }
-" -X POST 127.0.0.1/add-transaction
+    curl -d "{ "payer": "DANNON", "points": 1000, "timestamp": "2020-11-02T14:00:00Z" }" -X POST 127.0.0.1/add-transaction
     ```
 - `balance` accepts GET requests and returns total point balances for each payer with at least one transaction in the database.
 - `spend` accepts PUT requests representing a points spend request that have the format described below. If there are enough points in the database to cover the spend, this endpoint returns JSON describing the payers and their contributions to the spend request. Points are spent oldest-to-newest. If there are not enough points to cover the request, a response will be returned with status code 422 indicating there are insufficient points.
