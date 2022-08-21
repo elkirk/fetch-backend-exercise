@@ -44,7 +44,7 @@ def add_transaction(data: schemas.Transaction, db: Session = Depends(get_db)):
     return "Transaction added"
 
 
-@app.put("/spend", status_code=200)
+@app.post("/spend", status_code=200)
 def spend_points(data: schemas.SpendRequest, db: Session = Depends(get_db)):
 
     if check_if_enough_points(db, data.points):

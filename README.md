@@ -45,7 +45,7 @@ There are 4 endpoints that accept requests:
     ```console
     curl 127.0.0.1/balance
     ```
-- `spend` accepts PUT requests representing a points spend request that have the format described below. If there are enough points in the database to cover the spend, this endpoint returns JSON describing the payers and their contributions to the spend request. Points are spent oldest-to-newest. If there are not enough points to cover the request, a response will be returned with status code 422 indicating there are insufficient points.
+- `spend` accepts POST requests representing a points spend request that have the format described below. If there are enough points in the database to cover the spend, this endpoint returns JSON describing the payers and their contributions to the spend request. Points are spent oldest-to-newest. If there are not enough points to cover the request, a response will be returned with status code 422 indicating there are insufficient points.
     - Requests have the format:
     ```
     { "points": 5000 }
