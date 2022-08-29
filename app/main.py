@@ -11,15 +11,24 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+
 def check_duplicate_transaction(db: Session, payer: str, timestamp: datetime):
-    return db.query(models.Transaction).filter(models.Transaction.payer == payer, 
-                                               models.Transaction.timestamp == timestamp).first()
+    return (
+        db.query(models.Transaction)
+        .filter(
+            models.Transaction.payer == payer, models.Transaction.timestamp == timestamp
+        )
+        .first()
+    )
+
+
 def check_if_enough_points(db: Session, amount: int):
     if db.query(func.sum(models.Transaction.points)).first()[0]:
         total_points = db.query(func.sum(models.Transaction.points)).first()[0]
         return amount > total_points
     else:
         return True
+
 
 def get_db():
     db = SessionLocal()
@@ -35,9 +44,9 @@ def add_transaction(data: schemas.Transaction, db: Session = Depends(get_db)):
     if check_duplicate_transaction(db, data.payer, data.timestamp):
         raise HTTPException(status_code=422, detail="This transaction already exists")
 
-    new_transaction = models.Transaction(payer=data.payer, 
-                                         points=data.points, 
-                                         timestamp=data.timestamp)
+    new_transaction = models.Transaction(
+        payer=data.payer, points=data.points, timestamp=data.timestamp
+    )
     db.add(new_transaction)
     db.commit()
     db.refresh(new_transaction)
@@ -48,50 +57,68 @@ def add_transaction(data: schemas.Transaction, db: Session = Depends(get_db)):
 def spend_points(data: schemas.SpendRequest, db: Session = Depends(get_db)):
 
     if check_if_enough_points(db, data.points):
-        raise HTTPException(status_code=422, detail="Not enough points to cover spend request")
+        raise HTTPException(
+            status_code=422, detail="Not enough points to cover spend request"
+        )
 
     points = data.points
     spent_points = 0
 
-    transactions = db.query(models.Transaction
-            ).order_by(models.Transaction.timestamp.asc()
-            ).all()
-    
-    spend = list()
+    transactions = (
+        db.query(models.Transaction).order_by(models.Transaction.timestamp.asc()).all()
+    )
+    # need a check to make sure no payer contributes more points than they have available
+    # rather than a second query, could use transactions above to get to the same thing
+    balances = (
+        db.query(models.Transaction.payer, func.sum(models.Transaction.points))
+        .group_by(models.Transaction.payer)
+        .all()
+    )
 
+    spend = (
+        list()
+    )  # consider making this a dictionary where key is payer, value is list of contributions
+
+    contributors = dict()
     for record in transactions:
         if points == spent_points:
             break
 
         # check if current iteration's payer has already contributed points towards spend request
         payers = [True for transaction in spend if record.payer in transaction.values()]
-        
+
         # if yes, retrieve that payer's spend_transaction dictionary and modify it
         if any(payers):
-            idx = next(index for (index, transaction) in enumerate(spend) if transaction['payer'] == record.payer)
-            spend_transaction = spend.pop(idx) 
+            idx = next(
+                index
+                for (index, transaction) in enumerate(spend)
+                if transaction["payer"] == record.payer
+            )
+            spend_transaction = spend.pop(idx)
 
-            spend_transaction['points'] -= record.points
+            spend_transaction["points"] -= record.points
             spend.insert(idx, spend_transaction)
             spent_points += record.points
-            
+
         # else, create a new transaction for this payer
-        else:    
+        else:
             spend_transaction = dict()
-            spend_transaction['payer'] = record.payer
+            spend_transaction["payer"] = record.payer
 
             if record.points > points:
-                spend_transaction['points'] = -(points - spent_points)
-                spent_points += (points - spent_points)
+                spend_transaction["points"] = -(points - spent_points)
+                spent_points += points - spent_points
             else:
-                spend_transaction['points'] = -record.points
+                spend_transaction["points"] = -record.points
                 spent_points += record.points
-            
+
             spend.append(spend_transaction)
-        
+
     # write new spend transactions to db
     for transaction in spend:
-        new_transaction = models.Transaction(payer=transaction['payer'], points=transaction['points'])
+        new_transaction = models.Transaction(
+            payer=transaction["payer"], points=transaction["points"]
+        )
         db.add(new_transaction)
         db.commit()
         db.refresh(new_transaction)
@@ -102,10 +129,11 @@ def spend_points(data: schemas.SpendRequest, db: Session = Depends(get_db)):
 @app.get("/balance", status_code=200)
 def return_payer_balances(db: Session = Depends(get_db)):
 
-    balances = db.query(models.Transaction.payer,
-            func.sum(models.Transaction.points)
-            ).group_by(models.Transaction.payer
-            ).all()
+    balances = (
+        db.query(models.Transaction.payer, func.sum(models.Transaction.points))
+        .group_by(models.Transaction.payer)
+        .all()
+    )
 
     response = dict()
 
@@ -114,6 +142,7 @@ def return_payer_balances(db: Session = Depends(get_db)):
 
     # does this need to be explicitly converted to json, or is returning a dict fine?
     return response
+
 
 @app.get("/check", status_code=200)
 def check_db_records(db: Session = Depends(get_db)):
